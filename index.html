@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Syntax Highlighter</title>
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .main-content {
+            display: flex;
+            height: 85vh;
+        }
+
+        .panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 30px;
+        }
+
+        .panel:first-child {
+            border-right: 2px solid #e0e6ed;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .panel-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .icon {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        .highlight-btn,
+        .copy-btn {
+            padding: 12px 28px;
+            font-weight: 700;
+            font-size: 1rem;
+            font-family: "Franklin Gothic Medium", "Arial Narrow", Arial, sans-serif;
+            border-radius: 28px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.12s ease;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+            display: inline-block;
+            min-width: 140px;
+            text-align: center;
+            user-select: none;
+        }
+
+        .highlight-btn {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            box-shadow: 0 6px 20px rgba(238, 90, 36, 0.4);
+        }
+
+        .highlight-btn:not(:disabled):hover {
+            box-shadow: 0 10px 30px rgba(238, 90, 36, 0.65);
+            transform: translateY(-1px);
+        }
+
+        .highlight-btn:not(:disabled):active {
+            transform: translateY(0);
+            box-shadow: 0 4px 15px rgba(238, 90, 36, 0.4);
+        }
+
+        .copy-btn {
+            background: linear-gradient(135deg, #10ac84, #00d2d3);
+            color: white;
+            box-shadow: 0 6px 20px rgba(16, 172, 132, 0.3);
+        }
+
+        .copy-btn:not(:disabled):hover {
+            box-shadow: 0 10px 30px rgba(16, 172, 132, 0.55);
+            transform: translateY(-1px);
+        }
+
+        .copy-btn:not(:disabled):active {
+            transform: translateY(0);
+            box-shadow: 0 4px 15px rgba(16, 172, 132, 0.3);
+        }
+
+        .highlight-btn:disabled,
+        .copy-btn:disabled {
+            opacity: 0.5;
+            pointer-events: none;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .code-area {
+            border: 2px solid #e0e6ed;
+            border-radius: 12px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            padding: 20px;
+            resize: none;
+            outline: none;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+            line-height: 1.6;
+        }
+
+        .code-area:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .code-area:disabled {
+            background: #f1f3f4;
+            color: #6c757d;
+        }
+
+        .panel:first-child .code-area {
+            flex: 1;
+            margin-bottom: 20px;
+        }
+
+        .panel:last-child {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #htmlOutput {
+            height: 100%;
+            max-height: 600px;
+            overflow-y: auto;
+            resize: vertical;
+        }
+
+        #preview {
+            max-height: 590px;
+            overflow-y: auto;
+        }
+
+        .output-section {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            margin-bottom: 20px;
+        }
+
+        .output-section .code-area {
+            flex: 1;
+            margin-bottom: 20px;
+        }
+
+        .preview-area {
+            background: #2d3748;
+            color: #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            overflow-y: auto;
+            border: 2px solid #4a5568;
+            flex: 1;
+        }
+
+        .status-indicator {
+            height: 4px;
+            background: #e0e6ed;
+            border-radius: 2px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .status-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10ac84, #00d2d3);
+            width: 0%;
+            transition: width 0.5s ease;
+            border-radius: 2px;
+        }
+
+        /* Python syntax highlighting styles */
+        .python-keyword { color: #ff7043; font-weight: bold; }
+        .python-builtin { color: #42a5f5; font-weight: bold; }
+        .python-string { color: #66bb6a; }
+        .python-comment { color: #78909c; font-style: italic; }
+        .python-number { color: #ab47bc; }
+        .python-operator { color: #ff8a65; }
+        .python-function { color: #29b6f6; font-weight: bold; }
+        .python-function-call { color: #29b6f6; }
+        .python-method { color: #26c6da; }
+        .python-class { color: #ffa726; font-weight: bold; }
+        .python-decorator { color: #ff9800; font-weight: bold; }
+        .python-special { color: #9c27b0; font-weight: bold; }
+        .python-self { color: #8bc34a; font-style: italic; }
+        .python-type { color: #ffc107; font-weight: bold; }
+        .python-module { color: #e91e63; }
+        .python-docstring { color: #4caf50; font-style: italic; }
+        .python-annotation { color: #ff5722; }
+
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+                height: auto;
+            }
+
+            .panel:first-child {
+                border-right: none;
+                border-bottom: 2px solid #e0e6ed;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #10ac84, #00d2d3);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>Python Syntax Highlighter</h1>
+    </div>
+
+    <div class="main-content">
+        <div class="panel">
+            <div class="panel-header">
+                <div class="panel-title">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                    </svg>
+                    Python Code Input
+                </div>
+            </div>
+
+            <div class="status-indicator">
+                <div id="statusFill" class="status-fill"></div>
+            </div>
+
+            <textarea
+                    id="pythonInput"
+                    class="code-area"
+                    placeholder="Insert your Python code here..."
+            ></textarea>
+
+            <button id="highlightBtn" class="highlight-btn" disabled>Highlight</button>
+        </div>
+
+        <div class="panel">
+            <div class="panel-header">
+                <div class="panel-title">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M14.6,16.6L19.2,12L14.6,7.4L16,6L22,12L16,18L14.6,16.6M9.4,16.6L4.8,12L9.4,7.4L8,6L2,12L8,18L9.4,16.6Z"/>
+                    </svg>
+                    HTML Output
+                </div>
+            </div>
+
+            <div class="status-indicator">
+                <div id="outputStatusFill" class="status-fill"></div>
+            </div>
+
+            <div class="output-section">
+                <textarea
+                        id="htmlOutput"
+                        class="code-area"
+                        placeholder="Highlighted HTML appears here..."
+                        disabled
+                ></textarea>
+
+                <div class="preview-area" id="preview">
+                    <div style="color: #a0aec0; margin-bottom: 10px; font-size: 12px;">Preview:</div>
+                    <div id="previewContent"></div>
+                </div>
+            </div>
+
+            <button id="copyBtn" class="copy-btn" disabled>Copy HTML</button>
+        </div>
+    </div>
+</div>
+
+<div id="notification" class="notification">
+    HTML is copied.
+</div>
+
+<script>
+    class PythonSyntaxHighlighter {
+        constructor() {
+            this.pythonInput = document.getElementById('pythonInput');
+            this.htmlOutput = document.getElementById('htmlOutput');
+            this.highlightBtn = document.getElementById('highlightBtn');
+            this.copyBtn = document.getElementById('copyBtn');
+            this.statusFill = document.getElementById('statusFill');
+            this.outputStatusFill = document.getElementById('outputStatusFill');
+            this.preview = document.getElementById('preview');
+            this.previewContent = document.getElementById('previewContent');
+            this.notification = document.getElementById('notification');
+
+            this.keywords = ["and","as","assert","async","await","break","class","continue","def",
+                "del","elif","else","except","finally","for","from","global","if","import","in","is",
+                "lambda","nonlocal","not","or","pass","raise","return","try","while","with","yield","match","case"];
+
+            this.builtins = ["abs","all","any","ascii","bin","bool","bytearray","bytes","callable","chr",
+                "classmethod","compile","complex","delattr","dict","dir","divmod","enumerate","eval",
+                "exec","filter","float","format","frozenset","getattr","globals","hasattr","hash",
+                "help","hex","id","input","int","isinstance","issubclass","iter","len","list","locals",
+                "map","max","memoryview","min","next","object","oct","open","ord","pow","print","property",
+                "range","repr","reversed","round","set","setattr","slice","sorted","staticmethod",
+                "str","sum","super","tuple","type","vars","zip","__import__","NotImplementedError","RuntimeError","FileNotFoundError","ValueError","Exception"];
+
+            this.constants = ["True", "False", "None", "Ellipsis", "NotImplemented"];
+            this.types = ["Any","Union","Optional","List","Dict","Tuple","Set","FrozenSet","Callable","Iterator","Iterable","Generator","TypeVar",
+                "Generic","Protocol","Literal","Final","ClassVar","NoReturn","Awaitable","Coroutine","AsyncIterator","AsyncIterable",
+                "Mapping","MutableMapping","Sequence","MutableSequence","AbstractSet","MutableSet","IO","TextIO","BinaryIO","Pattern",
+                "Match","AnyStr","NamedTuple","TypedDict","NewType","Counter","ChainMap","UserDict","UserList","UserString","OrderedDict","defaultdict","deque"];
+
+            this.setupEventListeners();
+            this.updateButtonStates();
+        }
+
+        setupEventListeners() {
+            this.pythonInput.addEventListener('input', () => {
+                this.htmlOutput.value = "";
+                this.outputStatusFill.style.width = "0%";
+                this.updateButtonStates();
+            });
+
+            this.highlightBtn.addEventListener('click', () => {
+                this.highlightCode();
+            });
+
+            this.copyBtn.addEventListener('click', () => {
+                this.copyToClipboard();
+            });
+        }
+
+        updateButtonStates() {
+            const hasInput = this.pythonInput.value.trim().length > 0;
+            const hasOutput = this.htmlOutput.value.trim().length > 0;
+
+            this.highlightBtn.disabled = !hasInput;
+            this.copyBtn.disabled = !hasOutput;
+
+            if (hasInput && !hasOutput) {
+                this.statusFill.style.width = "50%";
+            } else if (hasOutput) {
+                this.statusFill.style.width = "100%";
+            } else {
+                this.statusFill.style.width = "0%";
+            }
+
+            this.outputStatusFill.style.width = hasOutput ? "100%" : "0%";
+        }
+
+        highlightCode() {
+            const code = this.pythonInput.value;
+            if (!code.trim()) return;
+
+            const highlighted = this.tokenizeAndHighlight(code);
+            const html = this.generateCompleteHtml(highlighted);
+
+            this.htmlOutput.value = html;
+            this.htmlOutput.disabled = false;
+            this.showPreview(highlighted);
+            this.updateButtonStates();
+        }
+
+        tokenizeAndHighlight(code) {
+            let lines = code.split('\n');
+            let result = "";
+            let insideTriple = false;
+            let tripleQuoteType = "";
+
+            for (let i = 0; i < lines.length; i++) {
+                let line = lines[i];
+
+                if (insideTriple) {
+                    result += `<span class="python-docstring">${this.escapeHtml(line)}</span>\n`;
+                    if (line.includes(tripleQuoteType)) {
+                        insideTriple = false;
+                    }
+                    continue;
+                }
+
+                let linePos = 0;
+                let lineLen = line.length;
+
+                while (linePos < lineLen) {
+                    let ch = line[linePos];
+
+                    // whitespace
+                    if (/\s/.test(ch)) {
+                        result += ch;
+                        linePos++;
+                        continue;
+                    }
+
+                    // decorators
+                    if (ch === '@') {
+                        let decoratorMatch = line.slice(linePos).match(/^@[_a-zA-Z][_a-zA-Z0-9]*(\.[_a-zA-Z][_a-zA-Z0-9]*)*/);
+                        if (decoratorMatch) {
+                            result += `<span class="python-decorator">${this.escapeHtml(decoratorMatch[0])}</span>`;
+                            linePos += decoratorMatch[0].length;
+                            continue;
+                        }
+                    }
+
+                    // comments
+                    if (ch === '#') {
+                        let comment = line.slice(linePos);
+                        result += `<span class="python-comment">${this.escapeHtml(comment)}</span>`;
+                        break;
+                    }
+
+                    // triple quotes - check for docstrings
+                    if (line.slice(linePos).startsWith('"""') || line.slice(linePos).startsWith("'''")) {
+                        tripleQuoteType = line.slice(linePos, linePos+3);
+                        let restOfLine = line.slice(linePos);
+
+                        // Check if triple quote closes on same line
+                        let closingIndex = restOfLine.indexOf(tripleQuoteType, 3);
+                        if (closingIndex !== -1) {
+                            let fullString = restOfLine.slice(0, closingIndex + 3);
+                            result += `<span class="python-docstring">${this.escapeHtml(fullString)}</span>`;
+                            linePos += fullString.length;
+                            continue;
+                        } else {
+                            insideTriple = true;
+                            result += `<span class="python-docstring">${this.escapeHtml(restOfLine)}</span>`;
+                            break;
+                        }
+                    }
+
+                    // string literals with proper prefix handling
+                    let stringMatch = line.slice(linePos).match(/^([fFrRuUbB]*)(["'])/);
+                    if (stringMatch) {
+                        let prefix = stringMatch[1];
+                        let quote = stringMatch[2];
+                        let startPos = linePos + prefix.length + 1;
+                        let escaped = false;
+                        let endPos = startPos;
+
+                        while (endPos < lineLen) {
+                            if (line[endPos] === '\\' && !escaped) {
+                                escaped = true;
+                            } else if (line[endPos] === quote && !escaped) {
+                                break;
+                            } else {
+                                escaped = false;
+                            }
+                            endPos++;
+                        }
+
+                        if (endPos < lineLen) {
+                            let str = line.slice(linePos, endPos + 1);
+                            result += `<span class="python-string">${this.escapeHtml(str)}</span>`;
+                            linePos = endPos + 1;
+                            continue;
+                        }
+                    }
+
+                    // numbers (including complex numbers, hex, oct, bin)
+                    let numMatch = line.slice(linePos).match(/^(0[xX][0-9a-fA-F]+|0[oO][0-7]+|0[bB][01]+|\d+\.?\d*([eE][+-]?\d+)?[jJ]?)/);
+                    if (numMatch) {
+                        result += `<span class="python-number">${numMatch[0]}</span>`;
+                        linePos += numMatch[0].length;
+                        continue;
+                    }
+
+                    // operators and punctuation
+                    let opMatch = line.slice(linePos).match(/^(==|!=|<=|>=|->|:=|\/\/=|<<=|>>=|\*\*=|\+=|-=|\*=|\/=|%=|&=|\|=|\^=|\/\/|<<|>>|\*\*|[+\-*/%&|^~<>=!:()[\]{},.;])/);
+                    if (opMatch) {
+                        result += `<span class="python-operator">${this.escapeHtml(opMatch[0])}</span>`;
+                        linePos += opMatch[0].length;
+                        continue;
+                    }
+
+                    // identifiers and keywords
+                    let idMatch = line.slice(linePos).match(/^[_a-zA-Z][_a-zA-Z0-9]*/);
+                    if (idMatch) {
+                        let id = idMatch[0];
+                        let nextCharPos = linePos + id.length;
+                        let nextChar = nextCharPos < lineLen ? line[nextCharPos] : '';
+
+                        // Check what comes before and after for context
+                        let prevChar = linePos > 0 ? line[linePos - 1] : '';
+                        let prevWord = '';
+                        let beforeMatch = line.slice(0, linePos).match(/[_a-zA-Z][_a-zA-Z0-9]*$/);
+                        if (beforeMatch) {
+                            prevWord = beforeMatch[0];
+                        }
+
+                        if (this.keywords.includes(id)) {
+                            result += `<span class="python-keyword">${id}</span>`;
+                        } else if (this.builtins.includes(id)) {
+                            result += `<span class="python-builtin">${id}</span>`;
+                        } else if (this.constants.includes(id)) {
+                            result += `<span class="python-keyword">${id}</span>`;
+                        } else if (this.types.includes(id)) {
+                            result += `<span class="python-type">${id}</span>`;
+                        } else if (id === 'self') {
+                            result += `<span class="python-self">${id}</span>`;
+                        } else if (id.startsWith('__') && id.endsWith('__')) {
+                            result += `<span class="python-special">${id}</span>`;
+                        } else if (nextChar === '(' && prevWord !== 'def') {
+                            // Function/method call
+                            if (prevChar === '.') {
+                                result += `<span class="python-method">${id}</span>`;
+                            } else {
+                                result += `<span class="python-function-call">${id}</span>`;
+                            }
+                        } else if (line.slice(0, linePos).trim().endsWith('def')) {
+                            // Function definition
+                            result += `<span class="python-function">${id}</span>`;
+                        } else if (line.slice(0, linePos).trim().endsWith('class')) {
+                            // Class definition
+                            result += `<span class="python-class">${id}</span>`;
+                        } else if (line.slice(0, linePos).includes('import') || line.slice(0, linePos).includes('from')) {
+                            // Module name
+                            result += `<span class="python-module">${id}</span>`;
+                        } else if (nextChar === ':' && /^\s*(def|class|if|elif|else|for|while|with|try|except|finally|async|match|case)/.test(line.trim())) {
+                            // Type annotation
+                            result += `<span class="python-annotation">${id}</span>`;
+                        } else {
+                            result += id;
+                        }
+                        linePos += id.length;
+                        continue;
+                    }
+
+                    // default character
+                    result += this.escapeHtml(ch);
+                    linePos++;
+                }
+
+                result += "\n";
+            }
+
+            return result;
+        }
+
+        escapeHtml(text) {
+            return text.replace(/&/g, "&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#x27;");
+        }
+
+        generateCompleteHtml(content) {
+            return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python Syntax Highlight</title>
+<style>
+body { font-family: 'Consolas', 'Monaco', monospace; background: #2d3748; color: #e2e8f0; padding: 20px; }
+pre { background: #1a202c; padding: 20px; border-radius: 8px; overflow-x: auto; line-height: 1.6; }
+.python-keyword { color: #ff7043; font-weight: bold; }
+.python-builtin { color: #42a5f5; font-weight: bold; }
+.python-string { color: #66bb6a; }
+.python-comment { color: #78909c; font-style: italic; }
+.python-number { color: #ab47bc; }
+.python-operator { color: #ff8a65; }
+.python-function { color: #29b6f6; font-weight: bold; }
+.python-function-call { color: #29b6f6; }
+.python-method { color: #26c6da; }
+.python-class { color: #ffa726; font-weight: bold; }
+.python-decorator { color: #ff9800; font-weight: bold; }
+.python-special { color: #9c27b0; font-weight: bold; }
+.python-self { color: #8bc34a; font-style: italic; }
+.python-type { color: #ffc107; font-weight: bold; }
+.python-module { color: #e91e63; }
+.python-docstring { color: #4caf50; font-style: italic; }
+.python-annotation { color: #ff5722; }
+</style>
+</head>
+<body>
+<pre><code>${content}</code></pre>
+</body>
+</html>`;
+        }
+
+        showPreview(content) {
+            this.previewContent.innerHTML = `<pre><code>${content}</code></pre>`;
+            this.preview.style.display = "block";
+        }
+
+        async copyToClipboard() {
+            try {
+                await navigator.clipboard.writeText(this.htmlOutput.value);
+                this.showNotification();
+            } catch {
+                this.htmlOutput.select();
+                document.execCommand('copy');
+                this.showNotification();
+            }
+        }
+
+        showNotification() {
+            this.notification.classList.add('show');
+            setTimeout(() => this.notification.classList.remove('show'), 3000);
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => new PythonSyntaxHighlighter());
+</script>
+
+</body>
+</html>
